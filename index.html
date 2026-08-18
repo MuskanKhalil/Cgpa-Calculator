@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — CGPA & Percentage Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --ink: #1c2521;
+    --paper: #f6f4ee;
+    --paper-line: #d8d3c4;
+    --moss: #3f5d4f;
+    --moss-deep: #2a4038;
+    --rust: #a8542f;
+    --gold: #c8963e;
+    --paper-shadow: rgba(28,37,33,0.08);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background: var(--ink);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+  }
+
+  body{
+    min-height:100vh;
+    padding: 48px 20px 80px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .sheet{
+    width:100%;
+    max-width: 760px;
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 39px,
+        var(--paper-line) 39px,
+        var(--paper-line) 40px
+      );
+    background-position: 0 var(--line-offset, 0px);
+    border-radius: 3px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.04);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .sheet::before{
+    content:"";
+    position:absolute;
+    top:0; left:64px;
+    width:1px;
+    height:100%;
+    background: rgba(168,84,47,0.18);
+  }
+
+  header{
+    padding: 44px 40px 20px 88px;
+    position:relative;
+  }
+
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing: 0.14em;
+    text-transform:uppercase;
+    color: var(--moss-deep);
+    opacity:0.75;
+    margin:0 0 10px;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size: 38px;
+    line-height:1.05;
+    margin:0 0 8px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  h1 em{
+    font-style: italic;
+    color: var(--moss);
+  }
+
+  .sub{
+    font-size:14.5px;
+    color: #5a5f5a;
+    max-width: 46ch;
+    line-height:1.5;
+    margin:0;
+  }
+
+  .scale-toggle{
+    margin: 22px 40px 28px 88px;
+    display:flex;
+    gap:0;
+    width: fit-content;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    overflow:hidden;
+    background: var(--paper);
+  }
+
+  .scale-toggle button{
+    font-family:'Space Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding: 9px 20px;
+    border:none;
+    background:transparent;
+    color: var(--ink);
+    cursor:pointer;
+    transition: background .18s ease, color .18s ease;
+  }
+
+  .scale-toggle button.active{
+    background: var(--moss-deep);
+    color: var(--paper);
+  }
+
+  .scale-toggle button:not(.active):hover{
+    background: rgba(63,93,79,0.1);
+  }
+
+  main{
+    padding: 8px 40px 8px 88px;
+  }
+
+  .table-head{
+    display:grid;
+    grid-template-columns: 1fr 108px 108px 34px;
+    gap: 12px;
+    font-family:'Space Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform:uppercase;
+    color: var(--moss-deep);
+    opacity:0.7;
+    padding: 0 2px 8px;
+  }
+
+  .rows{
+    display:flex;
+    flex-direction:column;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns: 1fr 108px 108px 34px;
+    gap: 12px;
+    align-items: end;
+    height: 40px;
+    padding: 0 2px;
+  }
+
+  .row input, .row select{
+    font-family:'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    height: 28px;
+    box-sizing: border-box;
+    margin:0;
+    background: transparent;
+    border: none;
+    border-radius:0;
+    padding: 4px 4px;
+    color: var(--ink);
+    width:100%;
+    transition: background-color .15s ease;
+  }
+
+  .row input::placeholder{ color: rgba(28,37,33,0.32); }
+
+  .row input:focus, .row select:focus{
+    outline:none;
+    background: rgba(63,93,79,0.06);
+    border-radius: 4px;
+  }
+
+  .row select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%231c2521' opacity='0.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position: right 6px center;
+    cursor:pointer;
+    padding-right:20px;
+  }
+
+  .row select:focus{
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0L5 6L10 0Z' fill='%231c2521' opacity='0.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position: right 6px center;
+  }
+
+  .row .credit-input{
+    text-align:center;
+  }
+
+  .grade-wrap{
+    display:flex;
+    align-items:flex-end;
+    height: 28px;
+  }
+
+  .remove-btn{
+    background:none;
+    border:none;
+    color: var(--rust);
+    font-size: 18px;
+    line-height:1;
+    cursor:pointer;
+    opacity:0.55;
+    padding: 4px;
+    height: 28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: opacity .15s ease;
+  }
+  .remove-btn:hover{ opacity:1; }
+
+  .add-row{
+    margin-top: 14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background: rgba(63,93,79,0.08);
+    border: 1.5px dashed rgba(63,93,79,0.4);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family:'Space Mono', monospace;
+    font-size: 12.5px;
+    letter-spacing:0.03em;
+    color: var(--moss-deep);
+    cursor:pointer;
+    width:100%;
+    justify-content:center;
+    transition: background .15s ease, border-color .15s ease;
+  }
+
+  .add-row:hover{
+    background: rgba(63,93,79,0.14);
+    border-color: var(--moss);
+  }
+
+  .result-band{
+    margin: 32px 40px 0 88px;
+    border-top: 2px solid var(--ink);
+    padding-top: 22px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap: 24px;
+    flex-wrap:wrap;
+  }
+
+  .result-label{
+    font-family:'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color: var(--moss-deep);
+    opacity:0.75;
+    margin:0 0 6px;
+  }
+
+  .result-value{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size: 56px;
+    line-height:1;
+    color: var(--moss-deep);
+    letter-spacing:-0.01em;
+  }
+
+  .result-value .cap{
+    font-size: 20px;
+    font-weight:400;
+    color: #5a5f5a;
+    margin-left:4px;
+  }
+
+  .stamp{
+    font-family:'Space Mono', monospace;
+    font-size: 12.5px;
+    color: var(--rust);
+    border: 1.5px solid var(--rust);
+    border-radius: 4px;
+    padding: 8px 14px;
+    text-align:center;
+    transform: rotate(-3deg);
+    white-space:nowrap;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+
+  footer{
+    padding: 22px 40px 34px 88px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  .note{
+    font-size:12px;
+    color: #7a7f78;
+    max-width: 42ch;
+    line-height:1.5;
+  }
+
+  .reset-btn{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    background:none;
+    border:none;
+    color: var(--ink);
+    opacity:0.5;
+    cursor:pointer;
+    text-decoration: underline;
+    text-underline-offset:3px;
+  }
+  .reset-btn:hover{ opacity:0.85; }
+
+  @media (max-width:560px){
+    body{ padding: 24px 10px 60px; }
+    header, .scale-toggle, main, .result-band, footer{
+      padding-left: 26px;
+      padding-right: 24px;
+    }
+    .sheet::before{ left: 20px; }
+    h1{ font-size: 30px; }
+    .table-head{ grid-template-columns: 1fr 74px 74px 26px; gap:6px; font-size:9px;}
+    .row{ grid-template-columns: 1fr 74px 74px 26px; gap:6px; }
+    .result-value{ font-size: 42px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet" id="sheet">
+  <header>
+    <p class="eyebrow">Semester ledger · No. 01</p>
+    <h1>Tally your <em>grades</em>,<br>not your stress.</h1>
+    <p class="sub">Add each course, its credit hours, and the grade you earned. The ledger keeps the running total.</p>
+  </header>
+
+  <div class="scale-toggle" id="scaleToggle">
+    <button class="active" data-mode="gpa">GPA · 4.0 Scale</button>
+    <button data-mode="percentage">Percentage</button>
+  </div>
+
+  <main>
+    <div class="table-head" id="tableHead">
+      <span>Course</span>
+      <span id="creditsLabel">Credit Hrs</span>
+      <span id="gradeLabel">Grade</span>
+      <span></span>
+    </div>
+    <div class="rows" id="rows"></div>
+    <button class="add-row" id="addRow">+ Add another course</button>
+  </main>
+
+  <div class="result-band">
+    <div>
+      <p class="result-label" id="resultLabel">Semester GPA</p>
+      <div class="result-value" id="resultValue">0.00</div>
+    </div>
+    <div class="stamp" id="remark">Add a course to begin</div>
+  </div>
+
+  <footer>
+    <p class="note" id="footNote">GPA = Σ(grade points × credit hours) ÷ Σ(credit hours)</p>
+    <button class="reset-btn" id="resetBtn">Clear all</button>
+  </footer>
+</div>
+
+<script>
+const gradeScaleGPA = [
+  { label: "A / A+  (4.00)", value: 4.0 },
+  { label: "A-      (3.67)", value: 3.67 },
+  { label: "B+      (3.33)", value: 3.33 },
+  { label: "B       (3.00)", value: 3.0 },
+  { label: "B-      (2.67)", value: 2.67 },
+  { label: "C+      (2.33)", value: 2.33 },
+  { label: "C       (2.00)", value: 2.0 },
+  { label: "C-      (1.67)", value: 1.67 },
+  { label: "D+      (1.33)", value: 1.33 },
+  { label: "D       (1.00)", value: 1.0 },
+  { label: "F       (0.00)", value: 0.0 },
+];
+
+let mode = "gpa"; // 'gpa' or 'percentage'
+let rowId = 0;
+
+const rowsEl = document.getElementById('rows');
+const resultValue = document.getElementById('resultValue');
+const resultLabel = document.getElementById('resultLabel');
+const remark = document.getElementById('remark');
+const gradeLabel = document.getElementById('gradeLabel');
+const footNote = document.getElementById('footNote');
+const scaleToggle = document.getElementById('scaleToggle');
+
+function gradeOptionsHTML(selected){
+  return gradeScaleGPA.map(g =>
+    `<option value="${g.value}" ${g.value === selected ? 'selected' : ''}>${g.label}</option>`
+  ).join('');
+}
+
+function makeRow(){
+  rowId++;
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.dataset.id = rowId;
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.placeholder = `Course ${rowsEl.children.length + 1}`;
+  nameInput.className = 'name-input';
+
+  const creditInput = document.createElement('input');
+  creditInput.type = 'number';
+  creditInput.min = '0';
+  creditInput.step = '0.5';
+  creditInput.placeholder = mode === 'gpa' ? '3' : '100';
+  creditInput.className = 'credit-input';
+  creditInput.addEventListener('input', calculate);
+
+  const gradeWrap = document.createElement('div');
+  gradeWrap.className = 'grade-wrap';
+
+  row.appendChild(nameInput);
+  row.appendChild(creditInput);
+  row.appendChild(gradeWrap);
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-btn';
+  removeBtn.innerHTML = '&times;';
+  removeBtn.title = 'Remove course';
+  removeBtn.addEventListener('click', () => {
+    row.remove();
+    calculate();
+  });
+  row.appendChild(removeBtn);
+
+  renderGradeField(gradeWrap);
+
+  rowsEl.appendChild(row);
+  return row;
+}
+
+function renderGradeField(gradeWrap, keepValue){
+  gradeWrap.innerHTML = '';
+  if (mode === 'gpa'){
+    const select = document.createElement('select');
+    select.className = 'grade-input';
+    select.innerHTML = gradeOptionsHTML(keepValue !== undefined ? keepValue : 4.0);
+    select.addEventListener('change', calculate);
+    gradeWrap.appendChild(select);
+  } else {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.max = '100';
+    input.step = '0.1';
+    input.placeholder = 'Marks %';
+    input.className = 'grade-input';
+    if (keepValue !== undefined) input.value = keepValue;
+    input.addEventListener('input', calculate);
+    gradeWrap.appendChild(input);
+  }
+}
+
+function switchMode(newMode){
+  if (newMode === mode) return;
+  mode = newMode;
+
+  [...scaleToggle.children].forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+
+  gradeLabel.textContent = mode === 'gpa' ? 'Grade' : 'Marks %';
+  document.getElementById('creditsLabel').textContent = mode === 'gpa' ? 'Credit Hrs' : 'Weight %';
+  resultLabel.textContent = mode === 'gpa' ? 'Semester GPA' : 'Overall Percentage';
+  footNote.textContent = mode === 'gpa'
+    ? 'GPA = Σ(grade points × credit hours) ÷ Σ(credit hours)'
+    : 'Percentage = Σ(marks × weight) ÷ Σ(weight)';
+
+  [...rowsEl.children].forEach(row => {
+    const creditInput = row.querySelector('.credit-input');
+    creditInput.placeholder = mode === 'gpa' ? '3' : '100';
+    const gradeWrap = row.querySelector('.grade-wrap');
+    renderGradeField(gradeWrap);
+  });
+
+  calculate();
+}
+
+scaleToggle.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  switchMode(btn.dataset.mode);
+});
+
+document.getElementById('addRow').addEventListener('click', () => {
+  makeRow();
+  calculate();
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  rowsEl.innerHTML = '';
+  rowId = 0;
+  makeRow();
+  makeRow();
+  calculate();
+});
+
+function calculate(){
+  let weightedSum = 0;
+  let totalWeight = 0;
+
+  [...rowsEl.children].forEach(row => {
+    const credit = parseFloat(row.querySelector('.credit-input').value);
+    const gradeField = row.querySelector('.grade-input');
+    const grade = parseFloat(gradeField.value);
+
+    if (!isNaN(credit) && credit > 0 && !isNaN(grade)){
+      weightedSum += credit * grade;
+      totalWeight += credit;
+    }
+  });
+
+  if (totalWeight === 0){
+    resultValue.innerHTML = mode === 'gpa' ? '0.00' : '0.0<span class="cap">%</span>';
+    remark.textContent = 'Add a course to begin';
+    return;
+  }
+
+  const result = weightedSum / totalWeight;
+
+  if (mode === 'gpa'){
+    resultValue.textContent = result.toFixed(2);
+    remark.textContent =
+      result >= 3.7 ? "Dean's list territory" :
+      result >= 3.3 ? 'Strong semester' :
+      result >= 3.0 ? 'Solid standing' :
+      result >= 2.5 ? 'Room to climb' :
+      'Needs attention';
+  } else {
+    resultValue.innerHTML = `${result.toFixed(1)}<span class="cap">%</span>`;
+    remark.textContent =
+      result >= 85 ? 'Distinction range' :
+      result >= 70 ? 'First division' :
+      result >= 60 ? 'Second division' :
+      result >= 50 ? 'Passing marks' :
+      'Below passing';
+  }
+}
+
+// align ruled background lines to the row grid
+function alignLedgerLines(){
+  const sheet = document.getElementById('sheet');
+  const rowsEl2 = document.getElementById('rows');
+  const sheetTop = sheet.getBoundingClientRect().top;
+  const rowsTop = rowsEl2.getBoundingClientRect().top;
+  const offset = ((rowsTop - sheetTop) % 40 + 40) % 40;
+  sheet.style.setProperty('--line-offset', offset + 'px');
+}
+
+window.addEventListener('resize', alignLedgerLines);
+
+// init
+makeRow();
+makeRow();
+calculate();
+alignLedgerLines();
+</script>
+
+</body>
+</html>
