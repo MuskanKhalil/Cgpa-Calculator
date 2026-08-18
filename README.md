@@ -2,7 +2,7 @@
 
 A clean, single-page calculator for tracking semester grades — supports both the 4.0 GPA scale and percentage-based grading, since not every university uses the same system.
 
-**[https://muskankhalil.github.io/Cgpa-Calculator/](#)** 
+**[Live Demo](https://muskankhalil.github.io/Cgpa-Calculator/)**
 
 ## Why I built this
 
